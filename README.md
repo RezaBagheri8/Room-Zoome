@@ -105,8 +105,16 @@ alembic upgrade head
 
 ## API Endpoints
 
-- `GET /api/v1/items`: List all items
-- `POST /api/v1/items`: Create a new item
-- `GET /api/v1/items/{id}`: Get a specific item
-- `PUT /api/v1/items/{id}`: Update an item
-- `DELETE /api/v1/items/{id}`: Delete an item 
+### Resume Endpoints
+- **PUT /resume/personal-info**: Update or create personal information for the current user.
+- **GET /resume/personal-info**: Retrieve personal information for the current user.
+- **PUT /resume/contact-info**: Update or create contact information for the current user.
+- **GET /resume/contact-info**: Retrieve contact information for the current user.
+- **POST /resume/social-media**: Add a new social media profile for the current user.
+
+### User Endpoints
+- **PATCH /users/profile**: Update the user's profile information, including optional profile picture upload.
+
+### Auth Endpoints
+- **POST /request-otp**: Request an OTP for phone number verification.
+- **POST /verify-otp**: Verify the OTP and authenticate the user.
