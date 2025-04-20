@@ -1,2 +1,112 @@
-# Room-Zoome
-A cool resume builder, with python fast api and postgres ddatabase
+# Roome Zoome Back-End
+
+A FastAPI application with PostgreSQL database integration, using SQLAlchemy ORM and Alembic for migrations.
+
+## Prerequisites
+
+- Python 3.8+
+- PostgreSQL
+
+## Setup
+
+1. Clone the repository:
+
+```bash
+git clone <repository-url>
+cd <project-directory>
+```
+
+2. Create a virtual environment and activate it:
+
+```bash
+python -m venv venv
+.\venv\Scripts\activate  # Windows
+source venv/bin/activate  # Linux/Mac
+```
+
+3. Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+4. Configure environment variables:
+
+Create a `.env` file in the project root with the following content:
+
+```
+POSTGRES_SERVER=localhost
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=your_password
+POSTGRES_DB=resume-builder
+POSTGRES_PORT=5432
+```
+
+5. Create the database:
+
+Create a PostgreSQL database named `resume-builder` using a tool like pgAdmin, DBeaver, or Navicat.
+
+6. Run database migrations:
+
+```bash
+alembic upgrade head
+```
+
+## Running the Application
+
+Start the FastAPI server:
+
+```bash
+python -m uvicorn main:app --reload
+```
+
+The API will be available at:
+- http://127.0.0.1:8000
+
+## API Documentation
+
+- Swagger UI: http://127.0.0.1:8000/docs
+- ReDoc: http://127.0.0.1:8000/redoc
+
+## Project Structure
+
+```
+├── alembic/              # Database migration files
+│   ├── versions/         # Migration version files
+│   └── env.py            # Alembic environment configuration
+├── app/                  # Application code
+│   ├── api/              # API endpoints
+│   │   ├── endpoints/    # API route handlers
+│   │   └── router.py     # Main API router
+│   ├── core/             # Core application code
+│   │   └── config.py     # Application configuration
+│   ├── db/               # Database related code
+│   │   └── session.py    # Database session
+│   ├── models/           # SQLAlchemy models
+│   ├── schemas/          # Pydantic schemas
+│   ├── services/         # Business logic
+│   └── repositories/     # Data access layer
+├── .env                  # Environment variables
+├── alembic.ini           # Alembic configuration
+├── main.py               # Application entry point
+└── requirements.txt      # Project dependencies
+```
+
+## Development
+
+### Creating New Migrations
+
+After making changes to your SQLAlchemy models:
+
+```bash
+alembic revision --autogenerate -m "Description of changes"
+alembic upgrade head
+```
+
+## API Endpoints
+
+- `GET /api/v1/items`: List all items
+- `POST /api/v1/items`: Create a new item
+- `GET /api/v1/items/{id}`: Get a specific item
+- `PUT /api/v1/items/{id}`: Update an item
+- `DELETE /api/v1/items/{id}`: Delete an item 
