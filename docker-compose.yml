@@ -1,0 +1,18 @@
+version: '3'
+
+services:
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./app:/app/app
+    environment:
+      - POSTGRES_SERVER=host.docker.internal
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=B3tMLDy1ri0oc15y
+      - POSTGRES_DB=resume-builder
+    extra_hosts:
+      # This adds an entry to the container's /etc/hosts file
+      - "host.docker.internal:host-gateway"

@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if user.first_name or user.last_name %}{{ user.first_name or '' }} {{ user.last_name or '' }}{% else %}Professional Resume{% endif %}</title>
+    <style>
+        /* Global Styles */
+        body {
+            font-family: 'Roboto', 'Segoe UI', 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        
+        .resume-container {
+            max-width: 8.5in;
+            min-height: 11in;
+            background-color: white;
+            margin: 20px auto;
+            padding: 40px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        
+        /* Header Styles */
+        .resume-header {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 20px;
+            gap: 30px;
+        }
+        
+        .profile-picture-container {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 3px solid #3498db;
+            flex-shrink: 0;
+        }
+        
+        .profile-picture {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .profile-picture-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #3498db;
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+        }
+        
+        .header-content {
+            flex-grow: 1;
+            text-align: left;
+        }
+        
+        .name {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #2c3e50;
+        }
+        
+        .title {
+            font-size: 18px;
+            color: #3498db;
+            margin-bottom: 10px;
+        }
+        
+        .contact-info {
+            font-size: 14px;
+            margin-top: 10px;
+            color: #555;
+        }
+        
+        /* Section Styles */
+        .resume-section {
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+            color: #3498db;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 8px;
+            letter-spacing: 1px;
+        }
+        
+        /* Work Experience & Education Styles */
+        .entry {
+            margin-bottom: 20px;
+            padding-left: 10px;
+            border-left: 2px solid #f0f0f0;
+        }
+        
+        .entry-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .entry-position, .entry-degree {
+            color: #2c3e50;
+            font-size: 16px;
+        }
+        
+        .entry-date {
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        
+        .entry-company, .entry-institution {
+            font-style: italic;
+            color: #34495e;
+            margin-bottom: 5px;
+        }
+        
+        .entry-details {
+            margin-top: 8px;
+            color: #555;
+        }
+        
+        .entry-details ul {
+            margin: 5px 0;
+            padding-left: 20px;
+        }
+        
+        .entry-details li {
+            margin-bottom: 3px;
+        }
+        
+        /* Skills Styles */
+        .skills-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        
+        .skill {
+            background-color: #e8f4fc;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            color: #2980b9;
+            border: 1px solid #bde0f3;
+        }
+        
+        /* Summary Styles */
+        .summary {
+            text-align: justify;
+            line-height: 1.7;
+            color: #444;
+        }
+        
+        /* Icon Styles */
+        .icon {
+            font-style: normal;
+            margin-right: 3px;
+            color: #3498db;
+        }
+        
+        /* Link Styles */
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        
+        a:hover {
+            text-decoration: underline;
+        }
+        
+        /* Print Styles - Important for PDF generation */
+        @media print {
+            body {
+                background-color: white;
+            }
+            
+            .resume-container {
+                box-shadow: none;
+                margin: 0;
+                padding: 20px;
+                max-width: 100%;
+                min-height: auto;
+                border-radius: 0;
+            }
+            
+            .entry {
+                page-break-inside: avoid;
+            }
+            
+            .resume-section {
+                page-break-inside: avoid;
+            }
+            
+            .profile-picture-container {
+                print-color-adjust: exact;
+                -webkit-print-color-adjust: exact;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="resume-container">
+        <!-- Header with Profile Picture, Name and Contact Info -->
+        <div class="resume-header">
+            <div class="profile-picture-container">
+                {% if user.profile_picture %}
+                <img src="{{ user.profile_picture }}" alt="Profile Picture" class="profile-picture">
+                {% else %}
+                <div class="profile-picture-placeholder">
+                    {{ user.first_name[0] if user.first_name else "" }}{{ user.last_name[0] if user.last_name else "" }}
+                </div>
+                {% endif %}
+            </div>
+            <div class="header-content">
+                <div class="name" id="fullName">{% if user.first_name or user.last_name %}{{ user.first_name or '' }} {{ user.last_name or '' }}{% else %}Professional Resume{% endif %}</div>
+                <div class="title" id="jobTitle">{% if work_experience and work_experience|length > 0 %}{{ work_experience[0].position }}{% else %}Professional{% endif %}</div>
+                <div class="contact-info">
+                    {% if contact_info and contact_info.email %}<span id="email"><i class="icon">✉</i> {{ contact_info.email }}</span>{% if contact_info.phone_number or contact_info.city %} • {% endif %}{% endif %}
+                    {% if contact_info and contact_info.phone_number %}<span id="phone"><i class="icon">📱</i> {{ contact_info.phone_number }}</span>{% if contact_info.city %} • {% endif %}{% endif %}
+                    {% if contact_info and contact_info.city %}<span id="location"><i class="icon">📍</i> {% if contact_info.city %}{{ contact_info.city }}{% endif %}{% if contact_info.province %}, {{ contact_info.province }}{% endif %}{% if contact_info.country %}, {{ contact_info.country }}{% endif %}</span>{% endif %}
+                    {% for social in social_media %}
+                        {% if social.name|lower == 'linkedin' %} • <span id="linkedin"><i class="icon">🔗</i> {{ social.profile_id }}</span>
+                        {% else %} • <span><i class="icon">🔗</i> {{ social.name }}: {{ social.profile_id }}</span>{% endif %}
+                    {% endfor %}
+                    {% if contact_info and contact_info.website %} • <span id="website"><i class="icon">🌐</i> <a href="{{ contact_info.website }}" target="_blank">Website</a></span>{% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Personal Information -->
+        {% if personal_info and (personal_info.gender or personal_info.is_married or personal_info.military_service_status) %}
+        <div class="resume-section">
+            <div class="section-title">Personal Information</div>
+            <div class="entry-details">
+                <ul>
+                    {% if personal_info.gender %}<li>Gender: {{ personal_info.gender|title }}</li>{% endif %}
+                    {% if personal_info.is_married is not none %}<li>Marital Status: {% if personal_info.is_married %}Married{% else %}Single{% endif %}</li>{% endif %}
+                    {% if personal_info.military_service_status %}<li>Military Service: {{ personal_info.military_service_status|title }}</li>{% endif %}
+                    {% if contact_info and contact_info.address %}<li>Address: {{ contact_info.address }}</li>{% endif %}
+                    {% if contact_info and contact_info.landline %}<li>Landline: {{ contact_info.landline }}</li>{% endif %}
+                </ul>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Professional Summary -->
+        <div class="resume-section">
+            <div class="section-title">Professional Summary</div>
+            <div class="summary" id="summary">
+                {% if personal_info and personal_info.about_me %}
+                    {{ personal_info.about_me }}
+                {% else %}
+                    Professional with experience in the field.
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Work Experience -->
+        <div class="resume-section">
+            <div class="section-title">Work Experience</div>
+            
+            {% for experience in work_experience %}
+            <div class="entry">
+                <div class="entry-title">
+                    <span class="entry-position">{{ experience.position }}</span>
+                    <span class="entry-date">{{ experience.start_date.strftime('%b %Y') }} - {% if experience.is_current %}Present{% elif experience.end_date %}{{ experience.end_date.strftime('%b %Y') }}{% else %}Present{% endif %}</span>
+                </div>
+                <div class="entry-company">{{ experience.company_name }}{% if experience.city or experience.province or experience.country %}, {% endif %}
+                    {% if experience.city %}{{ experience.city }}{% endif %}
+                    {% if experience.province %}{% if experience.city %}, {% endif %}{{ experience.province }}{% endif %}
+                    {% if experience.country %}{% if experience.city or experience.province %}, {% endif %}{{ experience.country }}{% endif %}
+                </div>
+                <div class="entry-details">
+                    {% if experience.description %}
+                    <ul>
+                        {% for line in experience.description.split('\n') %}
+                            {% if line.strip() %}
+                                <li>{{ line }}</li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+            </div>
+            {% else %}
+            <!-- No work experience entries -->
+            {% endfor %}
+        </div>
+        
+        <!-- Education -->
+        <div class="resume-section">
+            <div class="section-title">Education</div>
+            
+            {% for edu in education %}
+            <div class="entry">
+                <div class="entry-title">
+                    <span class="entry-degree">{{ edu.degree }} in {{ edu.major }}</span>
+                    <span class="entry-date">{% if edu.entrance_year %}{{ edu.entrance_year }}{% endif %}{% if edu.graduation_year %} - {% if edu.is_current %}Present{% else %}{{ edu.graduation_year }}{% endif %}{% endif %}</span>
+                </div>
+                <div class="entry-institution">{{ edu.university_name }}{% if edu.university_type %} ({{ edu.university_type }}){% endif %}{% if edu.city or edu.province or edu.country %}, {% endif %}
+                    {% if edu.city %}{{ edu.city }}{% endif %}
+                    {% if edu.province %}{% if edu.city %}, {% endif %}{{ edu.province }}{% endif %}
+                    {% if edu.country %}{% if edu.city or edu.province %}, {% endif %}{{ edu.country }}{% endif %}
+                </div>
+                {% if edu.grade %}
+                <div>Grade: {{ edu.grade }}</div>
+                {% endif %}
+            </div>
+            {% else %}
+            <!-- No education entries -->
+            {% endfor %}
+        </div>
+        
+        <!-- Skills -->
+        <div class="resume-section">
+            <div class="section-title">Skills</div>
+            <div class="skills-list" id="skills">
+                {% for skill in skills %}
+                <div class="skill">{{ skill.name }}{% if skill.proficiency and skill.proficiency != 'beginner' %} ({{ skill.proficiency|title }}){% endif %}</div>
+                {% else %}
+                <!-- No skills entries -->
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Projects -->
+        <div class="resume-section">
+            <div class="section-title">Projects</div>
+            
+            {% for project in projects %}
+            <div class="entry">
+                <div class="entry-title">
+                    <span class="entry-position">{{ project.title }}</span>
+                    <span class="entry-date">{% if project.date %}{{ project.date.strftime('%Y') }}{% endif %}</span>
+                </div>
+                {% if project.customer_name %}
+                <div class="entry-company">{{ project.customer_name }}</div>
+                {% endif %}
+                {% if project.link %}
+                <div><a href="{{ project.link }}" target="_blank">{{ project.link }}</a></div>
+                {% endif %}
+                <div class="entry-details">
+                    {% if project.description %}
+                    <ul>
+                        {% for line in project.description.split('\n') %}
+                            {% if line.strip() %}
+                                <li>{{ line }}</li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+            </div>
+            {% else %}
+            <!-- No project entries -->
+            {% endfor %}
+        </div>
+        
+        <!-- Languages -->
+        {% if languages %}
+        <div class="resume-section">
+            <div class="section-title">Languages</div>
+            <div class="skills-list">
+                {% for language in languages %}
+                <div class="skill">{{ language.name }} ({{ language.proficiency|title }})</div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Certificates -->
+        {% if certificates %}
+        <div class="resume-section">
+            <div class="section-title">Certificates</div>
+            {% for cert in certificates %}
+            <div class="entry">
+                <div class="entry-title">
+                    <span class="entry-position">{{ cert.title }}</span>
+                    <span class="entry-date">{% if cert.date %}{{ cert.date.strftime('%b %Y') }}{% endif %}</span>
+                </div>
+                <div class="entry-company">{{ cert.institute }}</div>
+                {% if cert.link %}
+                <div><a href="{{ cert.link }}" target="_blank">{{ cert.link }}</a></div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>
