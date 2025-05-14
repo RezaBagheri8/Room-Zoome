@@ -89,13 +89,41 @@ async def generate_pdf_from_data(resume_data: Dict[str, Any]) -> bytes:
     custom_css = """
     @page { margin: 0.5cm; }
     @font-face {
-        font-family: 'Roboto';
-        src: local('Roboto'), local('Segoe UI'), local('Arial');
+        font-family: 'Vazir';
+        src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/Vazir.woff2') format('woff2');
+        font-weight: normal;
+        font-style: normal;
+    }
+    body {
+        direction: rtl;
+        text-align: right;
+        font-family: 'Vazir', 'Tahoma', 'Arial', sans-serif;
     }
     .profile-picture-placeholder {
         color: white !important;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
+    }
+    .skills-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 15px;
+        justify-content: flex-start;
+        width: 100%;
+    }
+    .skill {
+        background-color: #e8f4fc;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 14px;
+        color: #2980b9;
+        border: 1px solid #bde0f3;
+        display: inline-block;
+        white-space: nowrap;
+        margin: 5px;
+        flex: 0 0 auto;
+        box-sizing: border-box;
     }
     """
     css = CSS(string=custom_css)

@@ -1,18 +1,44 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% if user.first_name or user.last_name %}{{ user.first_name or '' }} {{ user.last_name or '' }}{% else %}Professional Resume{% endif %}</title>
+    <title>{% if user.first_name or user.last_name %}{{ user.first_name or '' }} {{ user.last_name or '' }}{% else %}رزومه حرفه‌ای{% endif %}</title>
     <style>
         /* Global Styles */
-        body {
-            font-family: 'Roboto', 'Segoe UI', 'Arial', sans-serif;
+        @font-face {
+            font-family: 'Vazir';
+            src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/Vazir.woff2') format('woff2'),
+                 url('https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/Vazir.woff') format('woff'),
+                 url('https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/Vazir.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+        
+        @font-face {
+            font-family: 'Vazir';
+            src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/Vazir-Bold.woff2') format('woff2'),
+                 url('https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/Vazir-Bold.woff') format('woff'),
+                 url('https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/Vazir-Bold.ttf') format('truetype');
+            font-weight: bold;
+            font-style: normal;
+            font-display: swap;
+        }
+        
+        html, body {
+            font-family: 'Vazir', Arial, sans-serif !important;
             line-height: 1.6;
             color: #333;
             margin: 0;
             padding: 0;
             background-color: #f5f5f5;
+            direction: rtl;
+            text-align: right;
+        }
+        
+        * {
+            font-family: 'Vazir', Arial, sans-serif !important;
         }
         
         .resume-container {
@@ -28,7 +54,7 @@
         /* Header Styles */
         .resume-header {
             display: flex;
-            flex-direction: row;
+            flex-direction: row-reverse;
             align-items: center;
             margin-bottom: 30px;
             border-bottom: 2px solid #3498db;
@@ -65,7 +91,7 @@
         
         .header-content {
             flex-grow: 1;
-            text-align: left;
+            text-align: right;
         }
         
         .name {
@@ -106,14 +132,16 @@
         /* Work Experience & Education Styles */
         .entry {
             margin-bottom: 20px;
-            padding-left: 10px;
-            border-left: 2px solid #f0f0f0;
+            padding-right: 10px;
+            border-right: 2px solid #f0f0f0;
+            border-left: none;
         }
         
         .entry-title {
             font-weight: bold;
             margin-bottom: 8px;
             display: flex;
+            flex-direction: row-reverse;
             justify-content: space-between;
             align-items: center;
         }
@@ -141,7 +169,14 @@
         
         .entry-details ul {
             margin: 5px 0;
-            padding-left: 20px;
+            padding-right: 20px;
+            padding-left: 0;
+            list-style-position: inside;
+        }
+        
+        .entry-details li {
+            margin-bottom: 3px;
+            text-align: right;
         }
         
         .entry-details li {
@@ -152,7 +187,10 @@
         .skills-list {
             display: flex;
             flex-wrap: wrap;
-            gap: 12px;
+            gap: 10px;
+            margin-bottom: 15px;
+            justify-content: flex-start;
+            width: 100%;
         }
         
         .skill {
@@ -162,6 +200,11 @@
             font-size: 14px;
             color: #2980b9;
             border: 1px solid #bde0f3;
+            display: inline-block;
+            white-space: nowrap;
+            margin: 5px;
+            flex: 0 0 auto;
+            box-sizing: border-box;
         }
         
         /* Summary Styles */
@@ -169,12 +212,14 @@
             text-align: justify;
             line-height: 1.7;
             color: #444;
+            direction: rtl;
         }
         
         /* Icon Styles */
         .icon {
             font-style: normal;
-            margin-right: 3px;
+            margin-left: 3px;
+            margin-right: 0;
             color: #3498db;
         }
         
@@ -190,8 +235,21 @@
         
         /* Print Styles - Important for PDF generation */
         @media print {
+            @font-face {
+                font-family: 'Vazir';
+                src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/Vazir.woff2') format('woff2'),
+                     url('https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/Vazir.woff') format('woff'),
+                     url('https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/Vazir.ttf') format('truetype');
+                font-weight: normal;
+                font-style: normal;
+                font-display: swap;
+            }
+            
             body {
                 background-color: white;
+                direction: rtl;
+                text-align: right;
+                font-family: 'Vazir', Arial, sans-serif !important;
             }
             
             .resume-container {
@@ -218,7 +276,7 @@
         }
     </style>
 </head>
-<body>
+<body dir="rtl">
     <div class="resume-container">
         <!-- Header with Profile Picture, Name and Contact Info -->
         <div class="resume-header">
@@ -242,7 +300,7 @@
                         {% if social.name|lower == 'linkedin' %} • <span id="linkedin"><i class="icon">🔗</i> {{ social.profile_id }}</span>
                         {% else %} • <span><i class="icon">🔗</i> {{ social.name }}: {{ social.profile_id }}</span>{% endif %}
                     {% endfor %}
-                    {% if contact_info and contact_info.website %} • <span id="website"><i class="icon">🌐</i> <a href="{{ contact_info.website }}" target="_blank">Website</a></span>{% endif %}
+                    {% if contact_info and contact_info.website %} • <span id="website"><i class="icon">🌐</i> <a href="{{ contact_info.website }}" target="_blank">وب‌سایت</a></span>{% endif %}
                 </div>
             </div>
         </div>
@@ -250,14 +308,14 @@
         <!-- Personal Information -->
         {% if personal_info and (personal_info.gender or personal_info.is_married or personal_info.military_service_status) %}
         <div class="resume-section">
-            <div class="section-title">Personal Information</div>
+            <div class="section-title">اطلاعات شخصی</div>
             <div class="entry-details">
                 <ul>
-                    {% if personal_info.gender %}<li>Gender: {{ personal_info.gender|title }}</li>{% endif %}
-                    {% if personal_info.is_married is not none %}<li>Marital Status: {% if personal_info.is_married %}Married{% else %}Single{% endif %}</li>{% endif %}
-                    {% if personal_info.military_service_status %}<li>Military Service: {{ personal_info.military_service_status|title }}</li>{% endif %}
-                    {% if contact_info and contact_info.address %}<li>Address: {{ contact_info.address }}</li>{% endif %}
-                    {% if contact_info and contact_info.landline %}<li>Landline: {{ contact_info.landline }}</li>{% endif %}
+                    {% if personal_info.gender %}<li>جنسیت: {% if personal_info.gender == "male" %}مرد{% elif personal_info.gender == "female" %}زن{% elif personal_info.gender == "other" %}سایر{% else %}{{ personal_info.gender|title }}{% endif %}</li>{% endif %}
+                    {% if personal_info.is_married is not none %}<li>وضعیت تأهل: {% if personal_info.is_married %}متأهل{% else %}مجرد{% endif %}</li>{% endif %}
+                    {% if personal_info.military_service_status %}<li>وضعیت نظام وظیفه: {% if personal_info.military_service_status == "completed" %}پایان خدمت{% elif personal_info.military_service_status == "exempted" %}معاف{% elif personal_info.military_service_status == "ongoing" %}در حال خدمت{% elif personal_info.military_service_status == "not_applicable" %}غیر مشمول{% else %}{{ personal_info.military_service_status|title }}{% endif %}</li>{% endif %}
+                    {% if contact_info and contact_info.address %}<li>آدرس: {{ contact_info.address }}</li>{% endif %}
+                    {% if contact_info and contact_info.landline %}<li>تلفن ثابت: {{ contact_info.landline }}</li>{% endif %}
                 </ul>
             </div>
         </div>
@@ -265,19 +323,19 @@
         
         <!-- Professional Summary -->
         <div class="resume-section">
-            <div class="section-title">Professional Summary</div>
+            <div class="section-title">خلاصه حرفه‌ای</div>
             <div class="summary" id="summary">
                 {% if personal_info and personal_info.about_me %}
                     {{ personal_info.about_me }}
                 {% else %}
-                    Professional with experience in the field.
+                    متخصص با تجربه در این حوزه.
                 {% endif %}
             </div>
         </div>
         
         <!-- Work Experience -->
         <div class="resume-section">
-            <div class="section-title">Work Experience</div>
+            <div class="section-title">سوابق کاری</div>
             
             {% for experience in work_experience %}
             <div class="entry">
@@ -309,12 +367,12 @@
         
         <!-- Education -->
         <div class="resume-section">
-            <div class="section-title">Education</div>
+            <div class="section-title">تحصیلات</div>
             
             {% for edu in education %}
             <div class="entry">
                 <div class="entry-title">
-                    <span class="entry-degree">{{ edu.degree }} in {{ edu.major }}</span>
+                    <span class="entry-degree">{{ edu.degree }} در رشته {{ edu.major }}</span>
                     <span class="entry-date">{% if edu.entrance_year %}{{ edu.entrance_year }}{% endif %}{% if edu.graduation_year %} - {% if edu.is_current %}Present{% else %}{{ edu.graduation_year }}{% endif %}{% endif %}</span>
                 </div>
                 <div class="entry-institution">{{ edu.university_name }}{% if edu.university_type %} ({{ edu.university_type }}){% endif %}{% if edu.city or edu.province or edu.country %}, {% endif %}
@@ -323,7 +381,7 @@
                     {% if edu.country %}{% if edu.city or edu.province %}, {% endif %}{{ edu.country }}{% endif %}
                 </div>
                 {% if edu.grade %}
-                <div>Grade: {{ edu.grade }}</div>
+                <div>معدل: {{ edu.grade }}</div>
                 {% endif %}
             </div>
             {% else %}
@@ -333,7 +391,7 @@
         
         <!-- Skills -->
         <div class="resume-section">
-            <div class="section-title">Skills</div>
+            <div class="section-title">مهارت‌ها</div>
             <div class="skills-list" id="skills">
                 {% for skill in skills %}
                 <div class="skill">{{ skill.name }}{% if skill.proficiency and skill.proficiency != 'beginner' %} ({{ skill.proficiency|title }}){% endif %}</div>
@@ -345,7 +403,7 @@
         
         <!-- Projects -->
         <div class="resume-section">
-            <div class="section-title">Projects</div>
+            <div class="section-title">پروژه‌ها</div>
             
             {% for project in projects %}
             <div class="entry">
@@ -379,7 +437,7 @@
         <!-- Languages -->
         {% if languages %}
         <div class="resume-section">
-            <div class="section-title">Languages</div>
+            <div class="section-title">زبان‌ها</div>
             <div class="skills-list">
                 {% for language in languages %}
                 <div class="skill">{{ language.name }} ({{ language.proficiency|title }})</div>
@@ -391,7 +449,7 @@
         <!-- Certificates -->
         {% if certificates %}
         <div class="resume-section">
-            <div class="section-title">Certificates</div>
+            <div class="section-title">گواهینامه‌ها</div>
             {% for cert in certificates %}
             <div class="entry">
                 <div class="entry-title">
