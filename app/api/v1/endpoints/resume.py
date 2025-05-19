@@ -552,14 +552,11 @@ def generate_about_me_ai(
     current_user: User = Depends(get_current_user)
 ):
     """تولید پیشنهاد بخش 'درباره من' با استفاده از مدل Llama 3 از طریق OpenRouter AI (پاسخ به زبان فارسی)"""
-    model = body.model if body.model else "qwen/qwen3-235b-a22b:free"
-    api_key = os.getenv("OPENROUTER_API_KEY", "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")
-    url = "https://openrouter.ai/api/v1/chat/completions"
+    model = body.model if body.model else "gpt-4.1-mini"
+    url = "https://api.avalapis.ir/v1/chat/completions"
     headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://room-zoome.com",
-        "X-Title": "RoomZoome Resume Builder"
+        "Authorization": "Bearer aa-0oAGsM08RQ551q257qsTHj150BUwfppdHnpdF7F0dCT7iDgh",
+        "Content-Type": "application/json"
     }
     payload = {
         "model": model,
