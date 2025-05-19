@@ -1,6 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List, Optional
+import os
+import requests
+from pydantic import BaseModel
 
 from app.core.security import get_current_user
 from app.db.session import get_db
@@ -18,6 +21,13 @@ from app.schemas.resume import (
     EducationResponse, WorkExperienceResponse, LanguageResponse, SkillResponse,
     CertificateResponse, ProjectResponse
 )
+
+class AboutMeAIRequest(BaseModel):
+    prompt: str
+    model: str
+
+class AboutMeAIResponse(BaseModel):
+    suggestion: str
 
 router = APIRouter(
     prefix="/resume",
@@ -535,3 +545,34 @@ def get_projects(
 ):
     """Get all projects for the current user"""
     return db.query(Project).filter(Project.user_id == current_user.id).all()
+
+@router.post("/about-me-ai", response_model=AboutMeAIResponse)
+def generate_about_me_ai(
+    body: AboutMeAIRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """تولید پیشنهاد بخش 'درباره من' با استفاده از مدل Llama 3 از طریق OpenRouter AI (پاسخ به زبان فارسی)"""
+    model = body.model if body.model else "qwen/qwen3-235b-a22b:free"
+    api_key = os.getenv("OPENROUTER_API_KEY", "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")
+    url = "https://openrouter.ai/api/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://room-zoome.com",
+        "X-Title": "RoomZoome Resume Builder"
+    }
+    payload = {
+        "model": model,
+        "messages": [
+            {"role": "system", "content": "شما یک دستیار رزومه‌نویسی حرفه‌ای هستید. به کاربر کمک کن تا یک بخش 'درباره من' حرفه‌ای و جذاب برای رزومه خود بنویسد. لطفاً پاسخ را فقط به زبان فارسی و با نگارش رسمی ارائه بده."},
+            {"role": "user", "content": body.prompt}
+        ]
+    }
+    try:
+        response = requests.post(url, headers=headers, json=payload, timeout=30)
+        response.raise_for_status()
+        data = response.json()
+        suggestion = data["choices"][0]["message"]["content"]
+        return AboutMeAIResponse(suggestion=suggestion)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"خطا در تولید متن توسط هوش مصنوعی: {str(e)}")
