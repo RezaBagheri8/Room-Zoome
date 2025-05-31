@@ -28,13 +28,22 @@ templates = Jinja2Templates(directory="app/static")
 @router.get("/generate")
 async def generate_pdf(
     request: Request,
+    template: str = "resume_template.html",
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """Generate a PDF resume from user data"""
     resume_data = await get_complete_resume_data(db, current_user)
     
-    pdf_bytes = await generate_pdf_from_data(resume_data)
+    # Validate template exists
+    valid_templates = ["resume_template.html", "resume_template_ltr.html"]
+    if template not in valid_templates:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid template. Valid options are: {', '.join(valid_templates)}"
+        )
+    
+    pdf_bytes = await generate_pdf_from_data(resume_data, template)
     
     filename = f"{current_user.phone_number}_resume.pdf" if current_user.phone_number else "resume.pdf"
     return Response(
@@ -70,13 +79,16 @@ async def get_complete_resume_data(db: Session, user: User) -> Dict[str, Any]:
         "user": user
     }
 
-async def generate_pdf_from_data(resume_data: Dict[str, Any]) -> bytes:
+async def generate_pdf_from_data(resume_data: Dict[str, Any], template_name: str = "resume_template.html") -> bytes:
     """Generate PDF from resume data using WeasyPrint"""
     from jinja2 import Environment, FileSystemLoader
     env = Environment(loader=FileSystemLoader("app/static"))
-    template = env.get_template("resume_template.html")
-
+    
+    # Use the provided template name
+    template = env.get_template(template_name)
+    
     user = resume_data.get("user")
+    
     if user and user.profile_picture:
         if user.profile_picture.startswith("/static/"):
             profile_pic_path = f"app{user.profile_picture}"
@@ -86,19 +98,13 @@ async def generate_pdf_from_data(resume_data: Dict[str, Any]) -> bytes:
     html_content = template.render(**resume_data)
     
     html = HTML(string=html_content)
-    custom_css = """
+    
+    # Determine if we're using RTL or LTR template
+    is_rtl = template_name == "resume_template.html"
+    
+    # Base CSS that applies to all templates
+    base_css = """
     @page { margin: 0.5cm; }
-    @font-face {
-        font-family: 'Vazir';
-        src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/Vazir.woff2') format('woff2');
-        font-weight: normal;
-        font-style: normal;
-    }
-    body {
-        direction: rtl;
-        text-align: right;
-        font-family: 'Vazir', 'Tahoma', 'Arial', sans-serif;
-    }
     .profile-picture-placeholder {
         color: white !important;
         -webkit-print-color-adjust: exact;
@@ -126,6 +132,40 @@ async def generate_pdf_from_data(resume_data: Dict[str, Any]) -> bytes:
         box-sizing: border-box;
     }
     """
+    
+    # RTL specific CSS (Persian)
+    rtl_css = """
+    @font-face {
+        font-family: 'Vazir';
+        src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/Vazir.woff2') format('woff2');
+        font-weight: normal;
+        font-style: normal;
+    }
+    body {
+        direction: rtl;
+        text-align: right;
+        font-family: 'Vazir', 'Tahoma', 'Arial', sans-serif;
+    }
+    """
+    
+    # LTR specific CSS (English)
+    ltr_css = """
+    @font-face {
+        font-family: 'Roboto';
+        src: url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap');
+        font-weight: normal;
+        font-style: normal;
+    }
+    body {
+        direction: ltr;
+        text-align: left;
+        font-family: 'Roboto', 'Arial', sans-serif;
+    }
+    """
+    
+    # Combine the appropriate CSS based on template
+    custom_css = base_css + (rtl_css if is_rtl else ltr_css)
+    
     css = CSS(string=custom_css)
     pdf_bytes = html.write_pdf(stylesheets=[css])
     
