@@ -12,6 +12,10 @@ from app.core.security import get_current_user
 from app.db.session import get_db
 from app.models.user import User
 from app.schemas.user import UserResponse
+from fastapi import HTTPException
+from app.models import resume as resume_models
+from app.schemas.user import UserProfileResponse, UserResponse
+from app.schemas.resume import ResumeResponse
 
 router = APIRouter(
     prefix="/users",
@@ -56,3 +60,35 @@ async def update_profile(
     db.refresh(current_user)
     
     return current_user
+
+
+@router.get("/profile/{user_id}", response_model=UserProfileResponse, tags=["users"])
+def get_user_profile(user_id: int, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Fetch resume data
+    personal_info = db.query(resume_models.PersonalInfo).filter(resume_models.PersonalInfo.user_id == user_id).first()
+    contact_info = db.query(resume_models.ContactInfo).filter(resume_models.ContactInfo.user_id == user_id).first()
+    social_media = db.query(resume_models.SocialMedia).filter(resume_models.SocialMedia.user_id == user_id).all()
+    education = db.query(resume_models.Education).filter(resume_models.Education.user_id == user_id).all()
+    work_experiences = db.query(resume_models.WorkExperience).filter(resume_models.WorkExperience.user_id == user_id).all()
+    languages = db.query(resume_models.Language).filter(resume_models.Language.user_id == user_id).all()
+    skills = db.query(resume_models.Skill).filter(resume_models.Skill.user_id == user_id).all()
+    certificates = db.query(resume_models.Certificate).filter(resume_models.Certificate.user_id == user_id).all()
+    projects = db.query(resume_models.Project).filter(resume_models.Project.user_id == user_id).all()
+
+    resume = ResumeResponse(
+        personal_info=personal_info,
+        contact_info=contact_info,
+        social_media=social_media,
+        education=education,
+        work_experiences=work_experiences,
+        languages=languages,
+        skills=skills,
+        certificates=certificates,
+        projects=projects
+    )
+
+    return UserProfileResponse(user=user, resume=resume)

@@ -14,4 +14,13 @@ class UserResponse(BaseModel):
     otp_expires_at: Optional[datetime] = None
 
     class Config:
-        from_attributes = True 
+        from_attributes = True
+
+from app.schemas.resume import ResumeResponse
+
+class UserProfileResponse(BaseModel):
+    user: UserResponse
+    resume: ResumeResponse
+
+    class Config:
+        from_attributes = True
