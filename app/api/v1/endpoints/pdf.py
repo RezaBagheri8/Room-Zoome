@@ -8,6 +8,10 @@ from io import BytesIO
 import tempfile
 from pathlib import Path
 from weasyprint import HTML, CSS
+import aiosmtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.mime.application import MIMEApplication
 
 from app.core.security import get_current_user
 from app.db.session import get_db
@@ -46,6 +50,11 @@ async def generate_pdf(
     pdf_bytes = await generate_pdf_from_data(resume_data, template)
     
     filename = f"{current_user.phone_number}_resume.pdf" if current_user.phone_number else "resume.pdf"
+    
+    # Send email with PDF attachment if user has contact info with email
+    if resume_data.get("contact_info") and resume_data["contact_info"].email:
+        await send_resume_email(resume_data["contact_info"].email, pdf_bytes, filename)
+    
     return Response(
         content=pdf_bytes,
         media_type="application/pdf",
@@ -170,3 +179,34 @@ async def generate_pdf_from_data(resume_data: Dict[str, Any], template_name: str
     pdf_bytes = html.write_pdf(stylesheets=[css])
     
     return pdf_bytes
+
+async def send_resume_email(recipient_email: str, pdf_bytes: bytes, filename: str):
+    """Send email with PDF resume attachment"""
+    # Email configuration
+    sender_email = "rezabagheri3831@gmail.com"
+    sender_password = "vfli aoub rvhr scla"
+    smtp_server = "smtp.gmail.com"
+    smtp_port = 465  # Changed to 465 for SSL
+
+    # Create message
+    message = MIMEMultipart()
+    message["From"] = sender_email
+    message["To"] = recipient_email
+    message["Subject"] = "Your Resume PDF"
+
+    # Add body
+    body = "Please find your resume PDF attached."
+    message.attach(MIMEText(body, "plain"))
+
+    # Add PDF attachment
+    pdf_attachment = MIMEApplication(pdf_bytes, _subtype="pdf")
+    pdf_attachment.add_header("Content-Disposition", "attachment", filename=filename)
+    message.attach(pdf_attachment)
+
+    # Send email
+    try:
+        async with aiosmtplib.SMTP(hostname=smtp_server, port=smtp_port, use_tls=True, username=sender_email, password=sender_password) as smtp:
+            await smtp.send_message(message)
+    except Exception as e:
+        print(f"Failed to send email: {str(e)}")
+        # Don't raise an exception to allow the PDF download to continue even if email fails

@@ -11,3 +11,4 @@ python-multipart==0.0.5
 weasyprint>=53.0
 requests==2.32.3
 qrcode==8.2
+aiosmtplib==2.0.2
