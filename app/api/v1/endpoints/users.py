@@ -36,7 +36,7 @@ async def save_upload_file(upload_file: UploadFile, user_id: int) -> str:
     
     return f"/static/uploads/profile_pictures/{filename}"
 
-@router.patch("/profile", response_model=UserResponse)
+@router.put("/profile", response_model=UserResponse)
 async def update_profile(
     first_name: Optional[str] = Form(None),
     last_name: Optional[str] = Form(None),
@@ -92,3 +92,7 @@ def get_user_profile(user_id: int, db: Session = Depends(get_db)):
     )
 
     return UserProfileResponse(user=user, resume=resume)
+
+@router.get("/me", response_model=UserResponse, tags=["users"])
+def get_my_profile(current_user: User = Depends(get_current_user)):
+    return current_user
