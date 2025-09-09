@@ -21,6 +21,7 @@ from app.models.resume import (
     Education, WorkExperience, Language, Skill,
     Certificate, Project
 )
+from app.repositories.template import TemplateRepository
 
 router = APIRouter(
     prefix="/pdf",
@@ -28,26 +29,51 @@ router = APIRouter(
 )
 
 templates = Jinja2Templates(directory="app/static")
+template_repo = TemplateRepository()
 
 @router.get("/generate")
 async def generate_pdf(
     request: Request,
-    template: str = "resume_template.html",
+    template_id: int = None,
+    template_name: str = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Generate a PDF resume from user data"""
+    """Generate a PDF resume from user data using dynamic templates"""
     resume_data = await get_complete_resume_data(db, current_user)
     
-    # Validate template exists
-    valid_templates = ["resume_template.html", "resume_template_ltr.html"]
-    if template not in valid_templates:
+    # Get template from database
+    template_obj = None
+    if template_id:
+        template_obj = template_repo.get(db, template_id)
+    elif template_name:
+        template_obj = template_repo.get_by_name(db, template_name)
+    else:
+        # Default to first enabled template if none specified
+        enabled_templates = template_repo.get_enabled_templates(db, limit=1)
+        if enabled_templates:
+            template_obj = enabled_templates[0]
+    
+    if not template_obj:
         raise HTTPException(
-            status_code=400,
-            detail=f"Invalid template. Valid options are: {', '.join(valid_templates)}"
+            status_code=404,
+            detail="Template not found or disabled"
         )
     
-    pdf_bytes = await generate_pdf_from_data(resume_data, template)
+    if not template_obj.is_enabled:
+        raise HTTPException(
+            status_code=400,
+            detail="Template is disabled"
+        )
+    
+    # Check if template is free or user has access to paid templates
+    # TODO: Add payment/subscription logic here when implemented
+    if not template_obj.is_free:
+        # For now, allow all users to use paid templates
+        # Later, implement proper payment/subscription checks
+        pass
+    
+    pdf_bytes = await generate_pdf_from_data(resume_data, template_obj.template_path)
     
     filename = f"{current_user.phone_number}_resume.pdf" if current_user.phone_number else "resume.pdf"
     
@@ -88,13 +114,13 @@ async def get_complete_resume_data(db: Session, user: User) -> Dict[str, Any]:
         "user": user
     }
 
-async def generate_pdf_from_data(resume_data: Dict[str, Any], template_name: str = "resume_template.html") -> bytes:
+async def generate_pdf_from_data(resume_data: Dict[str, Any], template_path: str) -> bytes:
     """Generate PDF from resume data using WeasyPrint"""
     from jinja2 import Environment, FileSystemLoader
     env = Environment(loader=FileSystemLoader("app/static"))
     
-    # Use the provided template name
-    template = env.get_template(template_name)
+    # Use the provided template path
+    template = env.get_template(template_path)
     
     user = resume_data.get("user")
     
@@ -108,8 +134,8 @@ async def generate_pdf_from_data(resume_data: Dict[str, Any], template_name: str
     
     html = HTML(string=html_content)
     
-    # Determine if we're using RTL or LTR template
-    is_rtl = template_name == "resume_template.html"
+    # Determine if we're using RTL or LTR template based on template path
+    is_rtl = "rtl" in template_path.lower() or "persian" in template_path.lower()
     
     # Base CSS that applies to all templates
     base_css = """

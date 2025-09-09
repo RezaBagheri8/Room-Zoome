@@ -29,6 +29,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from app.models.base import Base
 from app.models.user import User
 from app.models.resume import PersonalInfo, ContactInfo, SocialMedia, Education, WorkExperience, Language, Skill, Certificate, Project
+from app.models.template import Template
 
 target_metadata = Base.metadata
 
