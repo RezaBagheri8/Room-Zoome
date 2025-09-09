@@ -33,22 +33,19 @@
 - **Method**: POST
 - **Description**: Create a new template (Admin only)
 - **Authentication**: Required (Admin)
-- **Request Model**: `TemplateCreate`
-  ```json
-  {
-    "name": "string",
-    "description": "string",
-    "direction": "ltr",
-    "language": "string",
-    "price": 0.0,
-    "is_free": true,
-    "is_enabled": true,
-    "template_path": "string",
-    "preview_path": "string",
-    "category": "string",
-    "sort_order": 0
-  }
-  ```
+- **Content Type**: `multipart/form-data`
+- **Form Fields**:
+  - `name`: string (required)
+  - `description`: string (optional)
+  - `direction`: string, default: "ltr" (optional)
+  - `language`: string, default: "English" (optional)
+  - `price`: float, default: 0.0 (optional)
+  - `is_free`: boolean, default: true (optional)
+  - `is_enabled`: boolean, default: true (optional)
+  - `category`: string (optional)
+  - `sort_order`: integer, default: 0 (optional)
+  - `template_file`: file (required) - The HTML template file
+  - `preview_file`: file (optional) - The preview image file
 - **Response Model**: `TemplateResponse`
   ```json
   {
@@ -100,22 +97,19 @@
 - **Authentication**: Required (Admin)
 - **Path Parameters**:
   - `template_id`: integer
-- **Request Model**: `TemplateUpdate`
-  ```json
-  {
-    "name": "string",
-    "description": "string",
-    "direction": "ltr",
-    "language": "string",
-    "price": 0.0,
-    "is_free": true,
-    "is_enabled": true,
-    "template_path": "string",
-    "preview_path": "string",
-    "category": "string",
-    "sort_order": 0
-  }
-  ```
+- **Content Type**: `multipart/form-data`
+- **Form Fields** (all optional):
+  - `name`: string
+  - `description`: string
+  - `direction`: string
+  - `language`: string
+  - `price`: float
+  - `is_free`: boolean
+  - `is_enabled`: boolean
+  - `category`: string
+  - `sort_order`: integer
+  - `template_file`: file - The HTML template file
+  - `preview_file`: file - The preview image file
 - **Response Model**: `TemplateResponse`
 
 ### Delete Template
