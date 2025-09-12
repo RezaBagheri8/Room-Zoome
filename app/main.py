@@ -5,11 +5,15 @@ from fastapi.security import HTTPBearer
 
 from app.api.v1.api import api_router
 from app.core.config import API_V1_STR
-from app.db.session import engine, Base
+from app.db.session import engine, Base, SessionLocal
+from app.models.base import Base as ModelsBase
+from sqlalchemy.orm import Session
+from app.models.admin import Admin
+import hashlib
 import logging
 
-# Create database tables
-Base.metadata.create_all(bind=engine)
+# Create database tables (ensure models Base is applied)
+ModelsBase.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="API with JWT Authentication",
@@ -53,8 +57,31 @@ app.add_middleware(
 # Mount static files directory
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
+def _hash_password(raw_password: str) -> str:
+    return hashlib.sha256(raw_password.encode("utf-8")).hexdigest()
+
+
+def _seed_admin() -> None:
+    db: Session = SessionLocal()
+    try:
+        username = "admin"
+        existing = db.query(Admin).filter(Admin.username == username).first()
+        if not existing:
+            admin = Admin(
+                full_name="Default Admin",
+                username=username,
+                password_hash=_hash_password("admin123")
+            )
+            db.add(admin)
+            db.commit()
+    finally:
+        db.close()
+
 # Include API router with version prefix
 app.include_router(api_router, prefix=API_V1_STR)
+
+# Seed default admin
+_seed_admin()
 
 
 # Configure logging

@@ -56,6 +56,11 @@ class TemplateListResponse(BaseModel):
     preview_path: Optional[str]
     category: Optional[str]
     sort_order: int
+    purchased: Optional[bool] = None
 
     class Config:
         from_attributes = True
+
+
+class PurchaseTemplateRequest(BaseModel):
+    template_id: int

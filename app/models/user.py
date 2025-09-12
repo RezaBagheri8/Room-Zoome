@@ -2,6 +2,7 @@ from sqlalchemy import Column, String, Boolean, Integer, DateTime, Date
 from app.models.base import Base
 from datetime import datetime, timedelta
 from sqlalchemy.orm import relationship
+from sqlalchemy import Float
 
 class User(Base):
     id = Column(Integer, primary_key=True, index=True)
@@ -13,6 +14,7 @@ class User(Base):
     is_verified = Column(Boolean, default=False)
     otp_code = Column(String(6), nullable=True)
     otp_expires_at = Column(DateTime, nullable=True)
+    wallet_balance = Column(Float, default=0.0, nullable=False)
     
     # Resume relationships
     personal_info = relationship("PersonalInfo", back_populates="user", uselist=False)
@@ -24,6 +26,7 @@ class User(Base):
     skills = relationship("Skill", back_populates="user")
     certificates = relationship("Certificate", back_populates="user")
     projects = relationship("Project", back_populates="user")
+    wallet_charges = relationship("WalletCharge", back_populates="user")
     
     def generate_otp(self):
         import random

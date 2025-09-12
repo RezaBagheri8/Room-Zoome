@@ -66,12 +66,11 @@ async def generate_pdf(
             detail="Template is disabled"
         )
     
-    # Check if template is free or user has access to paid templates
-    # TODO: Add payment/subscription logic here when implemented
+    # Check if template is free or user has purchased access
     if not template_obj.is_free:
-        # For now, allow all users to use paid templates
-        # Later, implement proper payment/subscription checks
-        pass
+        has_access = template_repo.user_has_access(db, current_user.id, template_obj.id)
+        if not has_access:
+            raise HTTPException(status_code=400, detail="Access denied: template not purchased")
     
     pdf_bytes = await generate_pdf_from_data(resume_data, template_obj.template_path)
     

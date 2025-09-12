@@ -148,3 +148,255 @@
 - **Query Parameters**:
   - `sort_order`: integer
 - **Response Model**: `TemplateResponse`
+
+
+## Admin Auth Endpoints
+
+### Admin Login
+
+- **Route**: `/admin/login`
+- **Method**: POST
+- **Description**: Authenticate admin and retrieve access token
+- **Authentication**: Not required
+- **Request Body (JSON)**:
+  ```json
+  {
+    "username": "string",
+    "password": "string"
+  }
+  ```
+- **Response Model**: `Token`
+  ```json
+  {
+    "access_token": "string",
+    "token_type": "bearer"
+  }
+  ```
+
+## Admin Wallet Endpoints
+
+### List Wallet Charges (Admin)
+
+- **Route**: `/admin/wallet/charges`
+- **Method**: GET
+- **Description**: List wallet charge requests with optional status filter
+- **Authentication**: Required (Admin)
+- **Query Parameters**:
+  - `status` (optional): string (e.g., `PENDING`, `ACCEPTED`, `REJECTED`)
+  - `skip` (optional): integer, default: 0
+  - `limit` (optional): integer, default: 100, max: 1000
+- **Response Model**: List of `WalletChargeResponse`
+  ```json
+  [
+    {
+      "id": 0,
+      "user_id": 0,
+      "amount": 0.0,
+      "receipt_path": "uploads/wallet_receipts/receipt_1_file.png",
+      "time": "2024-01-01T00:00:00Z",
+      "status": "PENDING"
+    }
+  ]
+  ```
+
+### Get Wallet Charge by ID (Admin)
+
+- **Route**: `/admin/wallet/charges/{charge_id}`
+- **Method**: GET
+- **Description**: Get details of a wallet charge by ID
+- **Authentication**: Required (Admin)
+- **Path Parameters**:
+  - `charge_id`: integer
+- **Response Model**: `WalletChargeResponse`
+  ```json
+  {
+    "id": 1,
+    "user_id": 42,
+    "amount": 100.0,
+    "receipt_path": "uploads/wallet_receipts/receipt_42_invoice.jpg",
+    "time": "2024-01-01T00:00:00Z",
+    "status": "PENDING"
+  }
+  ```
+
+### Accept Wallet Charge (Admin)
+
+- **Route**: `/admin/wallet/charges/{charge_id}/accept`
+- **Method**: POST
+- **Description**: Accept a pending wallet charge and credit user balance
+- **Authentication**: Required (Admin)
+- **Path Parameters**:
+  - `charge_id`: integer
+- **Response Model**: `WalletChargeResponse`
+  ```json
+  {
+    "id": 1,
+    "user_id": 42,
+    "amount": 100.0,
+    "receipt_path": "uploads/wallet_receipts/receipt_42_invoice.jpg",
+    "time": "2024-01-01T00:00:00Z",
+    "status": "ACCEPTED"
+  }
+  ```
+
+### Reject Wallet Charge (Admin)
+
+- **Route**: `/admin/wallet/charges/{charge_id}/reject`
+- **Method**: POST
+- **Description**: Reject a pending wallet charge
+- **Authentication**: Required (Admin)
+- **Path Parameters**:
+  - `charge_id`: integer
+- **Response Model**: `WalletChargeResponse`
+  ```json
+  {
+    "id": 1,
+    "user_id": 42,
+    "amount": 100.0,
+    "receipt_path": "uploads/wallet_receipts/receipt_42_invoice.jpg",
+    "time": "2024-01-01T00:00:00Z",
+    "status": "REJECTED"
+  }
+  ```
+
+## Template Endpoints (User)
+
+### Get All Templates (with purchase flag)
+
+- **Route**: `/template/options`
+- **Method**: GET
+- **Description**: Get all templates with `purchased` flag relative to current user
+- **Authentication**: Required
+- **Response Model**: List of `TemplateListResponse`
+  ```json
+  [
+    {
+      "id": 10,
+      "name": "Modern CV",
+      "description": "string",
+      "direction": "ltr",
+      "language": "English",
+      "price": 5.0,
+      "is_free": false,
+      "is_enabled": true,
+      "preview_path": "string",
+      "category": "string",
+      "sort_order": 0,
+      "purchased": false
+    }
+  ]
+  ```
+
+### Purchase Template
+
+- **Route**: `/template/purchase`
+- **Method**: POST
+- **Description**: Purchase a paid template; deducts from wallet balance
+- **Authentication**: Required
+- **Request Body (JSON)**:
+  ```json
+  {
+    "template_id": 10
+  }
+  ```
+- **Response Model**: `TemplateListResponse`
+  ```json
+  {
+    "id": 10,
+    "name": "Modern CV",
+    "description": "string",
+    "direction": "ltr",
+    "language": "English",
+    "price": 5.0,
+    "is_free": false,
+    "is_enabled": true,
+    "preview_path": "string",
+    "category": "string",
+    "sort_order": 0,
+    "purchased": true
+  }
+  ```
+
+### List My Purchased Templates
+
+- **Route**: `/template/my`
+- **Method**: GET
+- **Description**: List templates the current user has purchased
+- **Authentication**: Required
+- **Response Model**: List of `TemplateListResponse`
+  ```json
+  [
+    {
+      "id": 10,
+      "name": "Modern CV",
+      "description": "string",
+      "direction": "ltr",
+      "language": "English",
+      "price": 5.0,
+      "is_free": false,
+      "is_enabled": true,
+      "preview_path": "string",
+      "category": "string",
+      "sort_order": 0,
+      "purchased": true
+    }
+  ]
+  ```
+
+## Wallet Endpoints (User)
+
+### Get Wallet Balance
+
+- **Route**: `/wallet/balance`
+- **Method**: GET
+- **Description**: Retrieve current user's wallet balance
+- **Authentication**: Required
+- **Response**:
+  ```json
+  25.5
+  ```
+
+### Create Wallet Charge Request
+
+- **Route**: `/wallet/charges`
+- **Method**: POST
+- **Description**: Create a pending wallet charge with receipt upload
+- **Authentication**: Required
+- **Content Type**: `multipart/form-data`
+- **Form Fields**:
+  - `amount`: float (> 0) (required)
+  - `receipt`: file (required)
+- **Response Model**: `WalletChargeResponse`
+  ```json
+  {
+    "id": 5,
+    "user_id": 42,
+    "amount": 100.0,
+    "receipt_path": "uploads/wallet_receipts/receipt_42_invoice.jpg",
+    "time": "2024-01-01T00:00:00Z",
+    "status": "PENDING"
+  }
+  ```
+
+### List My Wallet Charges
+
+- **Route**: `/wallet/charges`
+- **Method**: GET
+- **Description**: List wallet charges created by the current user
+- **Authentication**: Required
+- **Query Parameters**:
+  - `skip` (optional): integer, default: 0
+  - `limit` (optional): integer, default: 100, max: 1000
+- **Response Model**: List of `WalletChargeResponse`
+  ```json
+  [
+    {
+      "id": 5,
+      "user_id": 42,
+      "amount": 100.0,
+      "receipt_path": "uploads/wallet_receipts/receipt_42_invoice.jpg",
+      "time": "2024-01-01T00:00:00Z",
+      "status": "PENDING"
+    }
+  ]
+  ```

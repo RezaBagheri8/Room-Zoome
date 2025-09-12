@@ -12,6 +12,7 @@ class UserResponse(BaseModel):
     is_verified: bool
     otp_code: Optional[str] = None
     otp_expires_at: Optional[datetime] = None
+    wallet_balance: float
 
     class Config:
         from_attributes = True

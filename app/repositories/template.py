@@ -5,6 +5,7 @@ from sqlalchemy import and_
 from app.models.template import Template
 from app.schemas.template import TemplateCreate, TemplateUpdate
 from app.repositories.base import BaseRepository
+from app.models.user_template import UserTemplate
 
 
 class TemplateRepository(BaseRepository[Template, TemplateCreate, TemplateUpdate]):
@@ -62,6 +63,12 @@ class TemplateRepository(BaseRepository[Template, TemplateCreate, TemplateUpdate
     def get_by_name(self, db: Session, name: str) -> Optional[Template]:
         """Get template by name"""
         return db.query(self.model).filter(self.model.name == name).first()
+
+    def user_has_access(self, db: Session, user_id: int, template_id: int) -> bool:
+        return db.query(UserTemplate).filter(
+            UserTemplate.user_id == user_id,
+            UserTemplate.template_id == template_id,
+        ).first() is not None
 
     def toggle_status(self, db: Session, template_id: int) -> Optional[Template]:
         """Toggle the enabled status of a template"""
