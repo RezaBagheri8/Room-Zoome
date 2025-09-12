@@ -31,6 +31,7 @@ from app.models.user import User
 from app.models.admin import Admin
 from app.models.resume import PersonalInfo, ContactInfo, SocialMedia, Education, WorkExperience, Language, Skill, Certificate, Project
 from app.models.template import Template
+from app.models.user_resume import UserResume
 
 target_metadata = Base.metadata
 

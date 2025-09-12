@@ -400,3 +400,58 @@
     }
   ]
   ```
+
+## PDF Endpoints (User)
+
+### Generate Resume PDF
+
+- **Route**: `/pdf/generate`
+- **Method**: GET
+- **Description**: Generate a PDF resume using the selected template. The PDF is returned in the response and also saved to your history.
+- **Authentication**: Required
+- **Query Parameters**:
+  - `template_id` (optional): integer
+  - `template_name` (optional): string
+- **Response**: Binary PDF (`application/pdf`)
+- **Notes**:
+  - If no template is specified, the first enabled template is used.
+  - If the template is paid, you must have purchased it first.
+
+### List My Generated Resumes (History)
+
+- **Route**: `/pdf/history`
+- **Method**: GET
+- **Description**: List previously generated resumes for the current user.
+- **Authentication**: Required
+- **Query Parameters**:
+  - `skip` (optional): integer, default: 0
+  - `limit` (optional): integer, default: 50
+- **Response**:
+  ```json
+  {
+    "items": [
+      {
+        "id": 12,
+        "file_name": "resume_3_42.pdf",
+        "file_path": "/static/uploads/resumes/42/resume_3_42.pdf",
+        "content_type": "application/pdf",
+        "file_size_bytes": 234567,
+        "template_id": 3,
+        "created_at": "2025-09-12T12:34:56Z"
+      }
+    ],
+    "total": 1
+  }
+  ```
+
+### Download a Previous Resume
+
+- **Route**: `/pdf/download/{resume_id}`
+- **Method**: GET
+- **Description**: Download a previously generated resume by ID.
+- **Authentication**: Required
+- **Path Parameters**:
+  - `resume_id`: integer
+- **Response**: Binary PDF (`application/pdf`)
+- **Headers**:
+  - `Content-Disposition`: `attachment; filename=<file_name>`

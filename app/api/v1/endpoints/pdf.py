@@ -22,6 +22,8 @@ from app.models.resume import (
     Certificate, Project
 )
 from app.repositories.template import TemplateRepository
+from app.repositories.user_resume import UserResumeRepository
+from app.models.user_resume import UserResume as UserResumeModel
 
 router = APIRouter(
     prefix="/pdf",
@@ -30,6 +32,7 @@ router = APIRouter(
 
 templates = Jinja2Templates(directory="app/static")
 template_repo = TemplateRepository()
+user_resume_repo = UserResumeRepository()
 
 @router.get("/generate")
 async def generate_pdf(
@@ -73,18 +76,100 @@ async def generate_pdf(
             raise HTTPException(status_code=400, detail="Access denied: template not purchased")
     
     pdf_bytes = await generate_pdf_from_data(resume_data, template_obj.template_path)
-    
-    filename = f"{current_user.phone_number}_resume.pdf" if current_user.phone_number else "resume.pdf"
-    
+
+    # Prepare filesystem path: app/static/uploads/resumes/{user_id}/
+    base_dir = os.path.join("app", "static", "uploads", "resumes", str(current_user.id))
+    os.makedirs(base_dir, exist_ok=True)
+
+    filename = f"resume_{template_obj.id}_{current_user.id}.pdf"
+    abs_path = os.path.join(base_dir, filename)
+
+    with open(abs_path, "wb") as f:
+        f.write(pdf_bytes)
+
+    rel_path = f"/static/uploads/resumes/{current_user.id}/{filename}"
+
+    # Create DB record
+    db_obj = UserResumeModel(
+        user_id=current_user.id,
+        template_id=template_obj.id,
+        file_path=rel_path,
+        file_name=filename,
+        content_type="application/pdf",
+        file_size_bytes=len(pdf_bytes),
+    )
+    db.add(db_obj)
+    db.commit()
+    db.refresh(db_obj)
+
     # Send email with PDF attachment if user has contact info with email
     if resume_data.get("contact_info") and resume_data["contact_info"].email:
         await send_resume_email(resume_data["contact_info"].email, pdf_bytes, filename)
-    
+
     return Response(
         content=pdf_bytes,
         media_type="application/pdf",
         headers={
             "Content-Disposition": f"attachment; filename={filename}"
+        }
+    )
+
+
+@router.get("/history")
+def list_generated_resumes(
+    skip: int = 0,
+    limit: int = 50,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    items = user_resume_repo.list_by_user(db, current_user.id, skip=skip, limit=limit)
+    total = user_resume_repo.count_by_user(db, current_user.id)
+    return {
+        "items": [
+            {
+                "id": r.id,
+                "file_name": r.file_name,
+                "file_path": r.file_path,
+                "content_type": r.content_type,
+                "file_size_bytes": r.file_size_bytes,
+                "template_id": r.template_id,
+                "created_at": r.created_at,
+            }
+            for r in items
+        ],
+        "total": total,
+    }
+
+
+@router.get("/download/{resume_id}")
+def download_resume(
+    resume_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    rec = db.query(UserResumeModel).filter(
+        UserResumeModel.id == resume_id,
+        UserResumeModel.user_id == current_user.id,
+    ).first()
+    if not rec:
+        raise HTTPException(status_code=404, detail="Resume not found")
+
+    # Convert relative /static path to filesystem path under app/static
+    if not rec.file_path.startswith("/static/"):
+        raise HTTPException(status_code=400, detail="Invalid stored path")
+
+    fs_path = os.path.join("app", rec.file_path.lstrip("/"))
+    if not os.path.exists(fs_path):
+        raise HTTPException(status_code=410, detail="File no longer exists")
+
+    with open(fs_path, "rb") as f:
+        data = f.read()
+
+    return Response(
+        content=data,
+        media_type=rec.content_type or "application/pdf",
+        headers={
+            "Content-Disposition": f"attachment; filename={rec.file_name}"
         }
     )
 
