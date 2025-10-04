@@ -6,7 +6,7 @@ from datetime import datetime
 class TemplateBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
     description: Optional[str] = None
-    direction: str = Field(default="ltr", regex="^(ltr|rtl)$")
+    direction: str = Field(default="ltr", pattern="^(ltr|rtl)$")
     language: str = Field(default="English", max_length=50)
     price: float = Field(default=0.0, ge=0.0)
     is_free: bool = Field(default=True)
@@ -24,7 +24,7 @@ class TemplateCreate(TemplateBase):
 class TemplateUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=1, max_length=100)
     description: Optional[str] = None
-    direction: Optional[str] = Field(None, regex="^(ltr|rtl)$")
+    direction: Optional[str] = Field(None, pattern="^(ltr|rtl)$")
     language: Optional[str] = Field(None, max_length=50)
     price: Optional[float] = Field(None, ge=0.0)
     is_free: Optional[bool] = None
