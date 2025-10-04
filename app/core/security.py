@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.db.session import get_db
 from app.models.user import User
+from app.models.admin import Admin
 import logging
 
 SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
@@ -45,7 +46,43 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         logging.error(f"JWTError occurred: {str(e)}")
         raise credentials_exception
     
-    user = db.query(User).filter(User.id == user_id).first()
-    if user is None:
-        raise credentials_exception
-    return user
+    # Check if this is an admin user
+    if user_id.startswith("admin:"):
+        admin_id = user_id.split(":")[1]
+        try:
+            admin_id_int = int(admin_id)
+            admin = db.query(Admin).filter(Admin.id == admin_id_int).first()
+            if admin is None:
+                raise credentials_exception
+            # Create a User-like object for admin users
+            # This allows admin endpoints to work with the same User type
+            class AdminUser:
+                def __init__(self, admin):
+                    self.id = admin.id
+                    self.phone_number = None
+                    self.first_name = admin.full_name
+                    self.last_name = None
+                    self.profile_picture = None
+                    self.birth_date = None
+                    self.is_verified = True
+                    self.otp_code = None
+                    self.otp_expires_at = None
+                    self.wallet_balance = 0.0
+                    self.created_at = None
+                    self.updated_at = None
+                    self.is_admin = True
+                    self.admin = admin
+            
+            return AdminUser(admin)
+        except (ValueError, IndexError):
+            raise credentials_exception
+    else:
+        # Regular user authentication
+        try:
+            user_id_int = int(user_id)
+            user = db.query(User).filter(User.id == user_id_int).first()
+            if user is None:
+                raise credentials_exception
+            return user
+        except ValueError:
+            raise credentials_exception
