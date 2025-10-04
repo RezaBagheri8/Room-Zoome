@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
@@ -22,7 +22,7 @@ def check_admin_permissions(current_user: User = Depends(get_current_user)):
 
 @router.get("/charges", response_model=List[WalletChargeResponse])
 def list_wallet_charges(
-    status: str | None = Query(None),
+    status: Optional[str] = Query(None),
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
     db: Session = Depends(get_db),
