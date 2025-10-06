@@ -203,8 +203,30 @@ async def generate_pdf_from_data(resume_data: Dict[str, Any], template_path: str
     from jinja2 import Environment, FileSystemLoader
     env = Environment(loader=FileSystemLoader("app/static"))
     
-    # Use the provided template path
-    template = env.get_template(template_path)
+    # Convert template path from database format to relative path for Jinja2
+    # Database stores: /static/uploads/templates/filename.html
+    # Jinja2 needs: uploads/templates/filename.html (relative to app/static)
+    if template_path.startswith("/static/"):
+        relative_template_path = template_path[8:]  # Remove "/static/" prefix
+    else:
+        relative_template_path = template_path
+    
+    print(f"🔍 Template path conversion:")
+    print(f"   Database path: {template_path}")
+    print(f"   Jinja2 path: {relative_template_path}")
+    
+    # Use the converted template path
+    try:
+        template = env.get_template(relative_template_path)
+    except Exception as e:
+        print(f"❌ Template loading error:")
+        print(f"   Original path: {template_path}")
+        print(f"   Relative path: {relative_template_path}")
+        print(f"   Error: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Template not found: {relative_template_path}. Original path: {template_path}"
+        )
     
     user = resume_data.get("user")
     
