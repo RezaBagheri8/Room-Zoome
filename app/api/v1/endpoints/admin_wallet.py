@@ -69,8 +69,11 @@ def accept_wallet_charge(
         db.add(charge)
         db.commit()
         db.refresh(charge)
-    except Exception:
+        db.refresh(user)
+        print(f"Charge {charge_id} accepted for user {user.id}. New balance: {user.wallet_balance}")
+    except Exception as e:
         db.rollback()
+        print(f"Error accepting charge {charge_id}: {str(e)}")
         raise
     return charge
 

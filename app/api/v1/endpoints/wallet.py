@@ -29,7 +29,7 @@ async def save_receipt(upload_file: UploadFile, user_id: int) -> str:
     file_path = UPLOAD_DIR / safe_filename
     with file_path.open("wb") as buffer:
         shutil.copyfileobj(upload_file.file, buffer)
-    return f"uploads/wallet_receipts/{safe_filename}"
+    return f"/static/uploads/wallet_receipts/{safe_filename}"
 
 
 @router.get("/balance", response_model=float)

@@ -212,7 +212,9 @@ async def generate_pdf_from_data(resume_data: Dict[str, Any], template_path: str
         if user.profile_picture.startswith("/static/"):
             profile_pic_path = f"app{user.profile_picture}"
             if os.path.exists(profile_pic_path):
-                user.profile_picture = f"file:///{os.path.abspath(profile_pic_path).replace(os.sep, '/')}"
+                # Convert to proper file:// URL for WeasyPrint
+                abs_path = os.path.abspath(profile_pic_path)
+                user.profile_picture = f"file:///{abs_path.replace(os.sep, '/')}"
 
     html_content = template.render(**resume_data)
     

@@ -46,7 +46,7 @@ async def save_upload_file(upload_file: UploadFile, folder: str) -> str:
         shutil.copyfileobj(upload_file.file, buffer)
     
     # Return relative path for database storage
-    return f"{folder}/{unique_filename}"
+    return f"/static/{folder}/{unique_filename}"
 
 @router.post("/", response_model=TemplateResponse)
 async def create_template(
@@ -228,7 +228,7 @@ async def delete_template(
         raise HTTPException(status_code=500, detail=f"Error deleting template: {str(e)}")
 
 
-@router.patch("/{template_id}/toggle-status", response_model=TemplateResponse)
+@router.put("/{template_id}/toggle-status", response_model=TemplateResponse)
 async def toggle_template_status(
     template_id: int,
     db: Session = Depends(get_db),
@@ -247,7 +247,7 @@ async def toggle_template_status(
         raise HTTPException(status_code=500, detail=f"Error toggling template status: {str(e)}")
 
 
-@router.patch("/{template_id}/sort-order", response_model=TemplateResponse)
+@router.put("/{template_id}/sort-order", response_model=TemplateResponse)
 async def update_template_sort_order(
     template_id: int,
     sort_order: int = Query(..., ge=0),
