@@ -208,13 +208,18 @@ async def generate_pdf_from_data(resume_data: Dict[str, Any], template_path: str
     
     user = resume_data.get("user")
     
+    # Create a copy of user data for PDF generation without modifying the original user object
     if user and user.profile_picture:
         if user.profile_picture.startswith("/static/"):
             profile_pic_path = f"app{user.profile_picture}"
             if os.path.exists(profile_pic_path):
-                # Convert to proper file:// URL for WeasyPrint
+                # Convert to proper file:// URL for WeasyPrint (only for PDF generation)
                 abs_path = os.path.abspath(profile_pic_path)
-                user.profile_picture = f"file:///{abs_path.replace(os.sep, '/')}"
+                # Create a copy of user data with modified profile picture for PDF only
+                user_copy = type(user).__new__(type(user))
+                user_copy.__dict__.update(user.__dict__)
+                user_copy.profile_picture = f"file:///{abs_path.replace(os.sep, '/')}"
+                resume_data["user"] = user_copy
 
     html_content = template.render(**resume_data)
     
